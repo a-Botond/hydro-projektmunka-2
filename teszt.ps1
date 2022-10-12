@@ -1,2 +1,2 @@
-﻿Write-Host "Hello World!"
+﻿Write-Host "Hello World! By Botond"
 PowerShell -NoExit 
