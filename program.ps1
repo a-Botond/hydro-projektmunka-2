@@ -14,7 +14,7 @@ $help = @"
         -p,--pxx    Name    Some option that has significance with the letter 'p'
         -w,--wxx    Name    Some option that has significance with the letter 'w'
         -c,--cxx    Name    Some option that has significance with the letter 'c'
-        -h,--help   Help    Prints this message
+        -h,--help   Help    Prints this messagee
 "@
 
     function parseOptions ($argv,$options) {
@@ -49,3 +49,7 @@ $help = @"
         }            
         return [array]$argv,$options
     }#fn
+
+
+
+PowerShell -NoExit 
