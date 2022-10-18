@@ -98,7 +98,7 @@ Follow the steps below to use:
 <!-- LICENSE -->
 ## License
 
-Distributed under the GNU v2 Copyleft License. See `LICENSE.txt` for more information.
+Distributed under the GNU v2 Copyleft License. See `LICENSE` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
