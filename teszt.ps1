@@ -53,7 +53,7 @@ Resolve-DnsName -Name gmail.com
         .PARAMETER Name
         Teszt-Net
         .EXAMPLE
-        Teszt-Net
+         Teszt-Net
         .LINK
         Github: https://github.com/a-Botond/projektmunka-2
     #>
