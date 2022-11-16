@@ -52,13 +52,22 @@ function Teszt-Net {
 
 function Teszt-Net
 {
-echo 'Default route elerheto?' 
-Test-Connection -ComputerName (Get-NetRoute -DestinationPrefix 0.0.0.0/0 | Select-Object -ExpandProperty NextHop) -Quiet
-echo 'Nameserver elerheto?'
-Test-Connection 1.1.1.1 -Quiet
-Resolve-DnsName -Name gmail.com
-echo 'DNS elerheto?'
-Teszt-DNS
+  # Check default route
+    echo 'Default route elerheto?' 
+    Test-Connection -ComputerName (Get-NetRoute -DestinationPrefix 0.0.0.0/0 | Select-Object -ExpandProperty NextHop) -Quiet
+
+  # Check existing external DNS
+    echo 'Nameserver elerheto?'
+    Test-Connection 1.1.1.1 -Quiet
+  
+  # Check resolve domains
+    Resolve-DnsName -Name gmail.com -Type A
+
+  # Check own dns settings. 
+  # Error if not ip addr in the record(s)
+  # Output => valid IPs => log/DNS_Addr.txt
+    echo 'DNS elerheto?'
+    Teszt-DNS
 }
    <#
         .SYNOPSIS
@@ -86,8 +95,8 @@ function Teszt-DNS {
     begin {}
     process {
         foreach ($Computer in $ComputerName) {
-            Echo "Working on $Computer"
-            Echo "Working on $ComputerName"
+            # Echo "Working on $Computer"
+            # Echo "Working on $ComputerName"
             if (Test-Connection -ComputerName $Computer -Count 1 -ea 0) {
 			
                 try {
@@ -96,7 +105,7 @@ function Teszt-DNS {
                         -ComputerName $Computer `
                         -ErrorAction Stop
 
-                    echo $Networks
+                    # echo $Networks
                 }
                 catch {
                     Echo "Failed to Query $Computer. Error details: $_"
@@ -128,22 +137,67 @@ function Teszt-DNS {
                     $OutputObj | Add-Member -MemberType NoteProperty -Name IsDHCPEnabled -Value $IsDHCPEnabled
                     $OutputObj | Add-Member -MemberType NoteProperty -Name NetworkName -Value $NetworkName
                     # $OutputObj
+                    # echo $PrimaryDNSServer
+                    $valid_IP_list = New-Object Collections.Generic.List[string]
+                    foreach ($dnsIP in $PrimaryDNSServer) {
+                      if((Test-IPaddress -IPAddress $dnsIP) -eq 1) {
+                        $valid_IP_list.Add($dnsIP)
+                      }
+                    }
+                    foreach ($dnsIP in $SecondaryDNSServer) {
+                      if((Test-IPaddress -IPAddress $dnsIP) -eq 1) {
+                        $valid_IP_list.Add($dnsIP)
+                      }
+                    }
 
-                    $HeloObj = New-Object -Type PSObject
-                    $HeloObj | Add-Member -MemberType NoteProperty -Name PrimaryDNSServers -Value $PrimaryDNSServer
-                    $HeloObj | Add-Member -MemberType NoteProperty -Name SecondaryDNSServers -Value $SecondaryDNSServer
-                    $HeloObj
+                    # $valid_IP_list;
+                    # write to file
+                    WriteFile log DNS_Addr $valid_IP_list 
+
+                    # $HeloObj = New-Object -Type PSObject
+                    # $HeloObj | Add-Member -MemberType NoteProperty -Name PrimaryDNSServers -Value $PrimaryDNSServer
+                    # $HeloObj | Add-Member -MemberType NoteProperty -Name SecondaryDNSServers -Value $SecondaryDNSServer
+                    # $HeloObj
 
                     # write to file
-                    WriteFile log dnsIps $HeloObj 
-                    WriteFile log dnsIps $OutputObj 1
+                    # WriteFile log DNS_Addr $HeloObj 
+                    # WriteFile log DNS_Addr $OutputObj 1
                 }
             }
             else {
-                Write-Verbose "$Computer not reachable"
+                echo "$Computer not reachable"
             }
         }
     }
 
     end {}
 } 
+
+function Test-IPaddress {
+  [CmdletBinding()]
+  Param
+  (
+    [Parameter(Mandatory = $true,
+      ValueFromPipelineByPropertyName = $true,
+      Position = 0)]
+    # [ValidateScript({ $_ -match [IPAddress]$_ })]  
+    [string]
+    $IPAddress
+  )
+
+  Begin {
+  }
+  Process {
+    Try {
+      if ($IPAddress -ne "Notset") {
+        $IP_Check = [ipaddress]$IPAddress
+        return 1
+      }
+    }
+    Catch{
+      return 0
+    }
+  }
+  End {
+  }
+}
